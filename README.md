@@ -31,4 +31,4 @@ This workflow is inspired by the Alfred v1 Extension from [Christian Schlensker]
 
 
 [Alfred]: http://www.alfredapp.com/ "Alfred v2 - Productivity Application for OS X"
-[workflow]: https://github.com/laerador/dmginstall/blob/master/Alfred%20Workflow/DMG%20Install.alfredworkflow
+[workflow]: https://github.com/laerador/dmginstall/blob/master/Alfred%20Workflow/DMG%20Install.alfredworkflow?raw=true
