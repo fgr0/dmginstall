@@ -25,10 +25,14 @@ v0.1:
 - Initial Release
 
 ## Credits
-This workflow is inspired by the Alfred v1 Extension from [Christian Schlensker](https://github.com/wordofchristian/Install-DMG), translated from Ruby to Python and Updated as a Alfred v2 Workflow.
+This workflow is inspired by the Alfred v1 Extension from [Christian 
+Schlensker](https://github.com/wordofchristian/Install-DMG), translated from 
+Ruby to Python and Updated as a Alfred v2 Workflow. It uses the [alp][]-Python 
+Environment for Alfred.
 
 
 
 
 [Alfred]: http://www.alfredapp.com/ "Alfred v2 - Productivity Application for OS X"
+[alp]: https://github.com/phyllisstein/alp
 [workflow]: https://github.com/laerador/dmginstall/blob/master/Alfred%20Workflow/DMG%20Install.alfredworkflow?raw=true
