@@ -5,7 +5,7 @@ Install your downloaded Applications right out of [Alfred][]
 DMG Install searches through your ~/Downloads-folder for the newest `.dmg`-File, mounts it, copies all Apps to /Application and unmounts the Volume.
 
 ## How to use
-#### As Keyword:]
+#### As Keyword:
 * Simply type `install` into Alfred
 
 ![](http://f.lc3dyr.de/dmginstall-1.png)
