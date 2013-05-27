@@ -60,15 +60,18 @@ def find_install_app(directory, installto='/Applications/'):
     return len(apps)
 
 
-def mount_dmg(dmg):
-    """ Mounts given DMG at /Volumes/NAME """
+def mount_dmg(dmg,unmount=False):
+    """ (Un)Mounts given DMG at /Volumes/NAME """
     
     # Generate Mountpoint
     mount_point = os.path.join('/Volumes/', os.path.splitext(os.path.basename(dmg))[0])
 
     # Mount dmg
     dnull = open('/dev/null','w')
-    return_code = subprocess.call(['hdiutil', 'attach', '-mountpoint', mount_point, dmg], stdout=dnull)
+    if unmount:
+        return_code = subprocess.call(['hdiutil', 'detach', volume], stdout=dnull)
+    else:
+        return_code = subprocess.call(['hdiutil', 'attach', '-mountpoint', mount_point, dmg], stdout=dnull)
     
     if return_code is not 0:
         print(errno.errorcode(return_code))
@@ -76,27 +79,13 @@ def mount_dmg(dmg):
 
     return mount_point
 
-
-def unmount_volume(volume, dmg=None):
-    if dmg:
-        volume = os.path.join('/Volumes/', os.path.splitext(os.path.basename(dmg))[0])
-
-    # Unmount Volume
-    dnull = open('/dev/null','w')
-    return_code = subprocess.call(['hdiutil', 'detach', volume], stdout=dnull)
-
-    if return_code is not 0:
-        print(errno.errorcode(return_code))
-        sys.exit(1)
-
-
 '''
 Functions for the use with Alfred
 '''
 def file_action(dmg):
     vol = mount_dmg(dmg)
     nr = find_install_app(vol)
-    unmount_volume(vol)
+    mount_dmg(dmg,unmount=True)
 
     if nr is 0:
         print('No Apps where installed')
@@ -104,11 +93,6 @@ def file_action(dmg):
         print('1 App was installed')
     elif nr > 0:
         print('%d Apps where installed'%nr)
-
-def keyword_action():
-    dmgs = find_dmg()
-    if dmgs:
-        file_action(dmgs[0])
 
 def script_action():
     """Creates Alfred-Feedback for the most-recent DMG"""
