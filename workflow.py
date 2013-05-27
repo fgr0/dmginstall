@@ -98,8 +98,11 @@ def extract_from_zip(zipf):
     
     zf = zipfile.ZipFile(zipf,'r')
     d = mkdtemp()
-    for app in [x.split('.app/',1)[0]+'.app/' for x in zf.namelist() if x.count('.app/') == 1]:
-        zf.extract(app, d)
+    print(d)
+    for app in list(set([x.split('.app/',1)[0]+'.app/' for x in zf.namelist() if x.count('.app/') == 1])):
+        for file in zf.namelist():
+            if file.startswith(app):
+                zf.extract(file, d)
 
     return find_install_app(d)
 
@@ -130,16 +133,19 @@ def script_action():
     # Sort by Creation time; Newest come first
     matches = sorted(matches, key=lambda f: os.path.getctime(f), reverse=True)
 
+    fb = []
     if matches:
-        match = matches[0]
-        alp.feedback(alp.Item(**{
-            'title': 'Install %s'%(os.path.splitext(os.path.basename(match))[0],),
-            'subtitle': 'Installs all Apps from %s'%match,
-            'arg': match,
-            'fileIcon': match,
-            'fileType': 'True'}))
+        for match in matches:
+            fb.append(alp.Item(**{
+                'title': 'Install %s'%(os.path.splitext(os.path.basename(match))[0],),
+                'subtitle': 'Installs all Apps from %s'%match,
+                'arg': match,
+                'fileIcon': match,
+                'fileType': 'True'}))
     else:
-        alp.feedback(alp.Item(**{
+        fb.append(alp.Item(**{
             'title': 'Install dmg',
             'subtitle': 'No dmg found',
             'valid': no}))
+
+    alp.feedback(fb)
