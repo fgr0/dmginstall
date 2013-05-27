@@ -109,7 +109,7 @@ def extract_from_zip(zipf):
 '''
 Functions for the use with Alfred
 '''
-def file_action(f):
+def file_action(f,delete=False):
     if f.endswith('.dmg'):
         vol = mount_dmg(f)
         nr = find_install_app(vol)
@@ -119,10 +119,17 @@ def file_action(f):
 
     if nr is 0:
         print('No Apps where installed')
+        return
     elif nr is 1:
         print('1 App was installed')
     elif nr > 0:
         print('%d Apps where installed'%nr)
+
+    if delete:
+        try:
+            os.remove(f)
+        except OSError:
+            pass
 
 def script_action():
     """Creates Alfred-Feedback for the most-recent DMG"""
