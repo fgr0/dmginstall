@@ -10,6 +10,7 @@
 # by laerador (Franz Greiling)
 
 import alp
+from send2trash import send2trash
 
 import sys
 import os.path
@@ -65,9 +66,9 @@ def find_install_app(directory, installto='/Applications/'):
 
     # Copy all apps to Install-Directory
     for app in apps:
-        return_code = subprocess.call(['cp', '-a', app, installto])
+        return_code = subprocess.call(['cp', '-pR', app, installto])
         if return_code != 0:
-            print(errno.errorcode(return_code))
+            print(errno.errorcode[return_code])
             print(return_code)
             sys.exit(1)
 
@@ -87,7 +88,7 @@ def mount_dmg(dmg,unmount=False):
     else:
         return_code = subprocess.call(['hdiutil', 'attach', '-mountpoint', mount_point, dmg], stdout=dnull)
     if return_code is not 0:
-        print(errno.errorcode(return_code))
+        print(errno.errorcode[return_code])
         sys.exit(1)
 
     return mount_point
@@ -99,9 +100,11 @@ def extract_from_zip(zipf):
     zf = zipfile.ZipFile(zipf,'r')
     d = mkdtemp()
     for app in list(set([x.split('.app/',1)[0]+'.app/' for x in zf.namelist() if x.count('.app/') == 1])):
-        for file in zf.namelist():
-            if file.startswith(app):
-                zf.extract(file, d)
+        return_code = subprocess.call(['unzip', '%s'%zipf, '%s'%app, '-d', '%s'%d])
+        if return_code != 0:
+            print(errno.errorcode[return_code])
+            print(return_code)
+            sys.exit(1)
 
     return find_install_app(d)
 
@@ -127,7 +130,7 @@ def file_action(f,delete=False):
 
     if delete:
         try:
-            os.remove(f)
+            send2trash(f)
         except OSError:
             pass
 
@@ -144,7 +147,7 @@ def script_action():
         for match in matches:
             fb.append(alp.Item(**{
                 'title': 'Install %s'%(os.path.splitext(os.path.basename(match))[0],),
-                'subtitle': 'Installs all Apps from %s'%match,
+                'subtitle': 'Install all Apps from %s'%match,
                 'arg': match,
                 'fileIcon': match,
                 'fileType': 'True'}))
