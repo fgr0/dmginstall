@@ -36,9 +36,6 @@ def find_dmg(directory='~/Downloads/'):
         if f.endswith('.dmg'):
             dmgs.append(os.path.join(directory, f))
 
-    # Sort by Creation time; Newest come first
-    dmgs = sorted(dmgs, key=lambda f: os.path.getctime(f), reverse=True)
-
     return dmgs
 
 def find_zip(directory='~/Downloads/'):
@@ -50,11 +47,8 @@ def find_zip(directory='~/Downloads/'):
     for f in os.listdir(directory):
         if f.endswith('.zip'):
             zf = zipfile.ZipFile(os.path.join(directory, f), 'r')
-            if list(set([x.split('.app/', 1)[0]+'.app/' for x in zf.namelist() if x.count('.app/') == 1])):
+            if [x.split('.app/', 1)[0]+'.app/' for x in zf.namelist() if x.count('.app/') == 1]:
                 zips.append(os.path.join(directory, f))
-
-    # Sort by Creation time; Newest come first
-    zips = sorted(zips, key=lambda f: os.path.getctime(f), reverse=True)
 
     return zips
 
@@ -115,16 +109,19 @@ def file_action(dmg):
 
 def script_action():
     """Creates Alfred-Feedback for the most-recent DMG"""
-    dmgs = find_dmg()
-    dmgs+= find_zip()
+    matches = find_dmg()
+    matches+= find_zip()
 
-    if dmgs:
-        dmg = dmgs[0]
+    # Sort by Creation time; Newest come first
+    matches = sorted(matches, key=lambda f: os.path.getctime(f), reverse=True)
+
+    if matches:
+        match = matches[0]
         alp.feedback(alp.Item(**{
-            'title': 'Install %s'%(os.path.splitext(os.path.basename(dmg))[0],),
-            'subtitle': 'Installs all Apps from %s'%dmg,
-            'arg': dmg,
-            'fileIcon': dmg,
+            'title': 'Install %s'%(os.path.splitext(os.path.basename(match))[0],),
+            'subtitle': 'Installs all Apps from %s'%match,
+            'arg': match,
+            'fileIcon': match,
             'fileType': 'True'}))
     else:
         alp.feedback(alp.Item(**{
