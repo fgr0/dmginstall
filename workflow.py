@@ -98,7 +98,6 @@ def extract_from_zip(zipf):
     
     zf = zipfile.ZipFile(zipf,'r')
     d = mkdtemp()
-    print(d)
     for app in list(set([x.split('.app/',1)[0]+'.app/' for x in zf.namelist() if x.count('.app/') == 1])):
         for file in zf.namelist():
             if file.startswith(app):
