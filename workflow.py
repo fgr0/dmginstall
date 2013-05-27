@@ -19,6 +19,7 @@ import errno
 import subprocess
 
 import zipfile
+from tempfile import mkdtemp
 
 import shutil
 
@@ -85,20 +86,34 @@ def mount_dmg(dmg,unmount=False):
         return_code = subprocess.call(['hdiutil', 'detach', volume], stdout=dnull)
     else:
         return_code = subprocess.call(['hdiutil', 'attach', '-mountpoint', mount_point, dmg], stdout=dnull)
-    
     if return_code is not 0:
         print(errno.errorcode(return_code))
         sys.exit(1)
 
     return mount_point
 
+def extract_from_zip(zipf):
+    """ Extracts all Apps from zipfile to temp-directory, 
+    then calls find_install_app() """
+    
+    zf = zipfile.ZipFile(zipf,'r')
+    d = mkdtemp()
+    for app in [x.split('.app/',1)[0]+'.app/' for x in zf.namelist() if x.count('.app/') == 1]:
+        zf.extract(app, d)
+
+    return find_install_app(d)
+
+
 '''
 Functions for the use with Alfred
 '''
-def file_action(dmg):
-    vol = mount_dmg(dmg)
-    nr = find_install_app(vol)
-    mount_dmg(dmg,unmount=True)
+def file_action(f):
+    if f.endswith('.dmg'):
+        vol = mount_dmg(f)
+        nr = find_install_app(vol)
+        mount_dmg(f,unmount=True)
+    elif f.endswith('.zip'):
+        nr = extract_from_zip(f)
 
     if nr is 0:
         print('No Apps where installed')
