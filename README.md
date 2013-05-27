@@ -35,4 +35,4 @@ Environment for Alfred.
 
 [Alfred]: http://www.alfredapp.com/ "Alfred v2 - Productivity Application for OS X"
 [alp]: https://github.com/phyllisstein/alp
-[workflow]: https://github.com/laerador/dmginstall/blob/master/Alfred%20Workflow/DMG%20Install.alfredworkflow?raw=true
+[workflow]: http://l.lc3dyr.de/dmginstallflow
