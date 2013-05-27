@@ -18,6 +18,8 @@ import time
 import errno
 import subprocess
 
+import zipfile
+
 import shutil
 
 
@@ -38,6 +40,23 @@ def find_dmg(directory='~/Downloads/'):
     dmgs = sorted(dmgs, key=lambda f: os.path.getctime(f), reverse=True)
 
     return dmgs
+
+def find_zip(directory='~/Downloads/'):
+    """ Searches 'directory' for all zip-Files containing *.apps """
+    directory = os.path.expanduser(directory)
+    
+    # Find all zips
+    zips = []
+    for f in os.listdir(directory):
+        if f.endswith('.zip'):
+            zf = zipfile.ZipFile(os.path.join(directory, f), 'r')
+            if list(set([x.split('.app/', 1)[0]+'.app/' for x in zf.namelist() if x.count('.app/') == 1])):
+                zips.append(os.path.join(directory, f))
+
+    # Sort by Creation time; Newest come first
+    zips = sorted(zips, key=lambda f: os.path.getctime(f), reverse=True)
+
+    return zips
 
 
 def find_install_app(directory, installto='/Applications/'):
@@ -97,6 +116,7 @@ def file_action(dmg):
 def script_action():
     """Creates Alfred-Feedback for the most-recent DMG"""
     dmgs = find_dmg()
+    dmgs+= find_zip()
 
     if dmgs:
         dmg = dmgs[0]
