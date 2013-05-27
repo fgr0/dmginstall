@@ -21,8 +21,11 @@ DMG Install searches through your ~/Downloads-folder for the newest `.dmg`-File,
 Clone this repository to your Mac or simply download and open the [workflow][].
 
 ## Changelog
-v0.1:
-- Initial Release
+* v0.2:
+    - Add ability to install from `*.zip`-Files
+    - Show all possible matches instead of only one<br/>(This is still sorted by most-recent)
+* v0.1:
+    - Initial Release
 
 ## Credits
 This workflow is inspired by the Alfred v1 Extension from [Christian 
