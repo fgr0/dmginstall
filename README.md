@@ -38,7 +38,7 @@ Clone this repository to your Mac or simply download and open the [workflow][].
 This workflow is inspired by the Alfred v1 Extension from [Christian 
 Schlensker](https://github.com/wordofchristian/Install-DMG), translated from 
 Ruby to Python and Updated as a Alfred v2 Workflow. It uses the [alp][]-Python 
-Environment for Alfred.
+Environment for Alfred and the [send2trash](https://pypi.python.org/pypi/Send2Trash) Module.
 
 
 
