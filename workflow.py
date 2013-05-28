@@ -84,7 +84,7 @@ def mount_dmg(dmg,unmount=False):
     # Mount dmg
     dnull = open('/dev/null','w')
     if unmount:
-        return_code = subprocess.call(['hdiutil', 'detach', volume], stdout=dnull)
+        return_code = subprocess.call(['hdiutil', 'detach', mount_point], stdout=dnull)
     else:
         return_code = subprocess.call(['hdiutil', 'attach', '-mountpoint', mount_point, dmg], stdout=dnull)
     if return_code is not 0:
