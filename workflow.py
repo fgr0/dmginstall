@@ -178,7 +178,7 @@ def script_action():
     fb = []
     if matches:
         for match in matches:
-            if match.endswith('.app'):
+            if match.endswith('.app') or match.endswith('.pkg'):
                 fb.append(alp.Item(**{
                     'title': 'Install %s'%(os.path.splitext(os.path.basename(match))[0],),
                     'subtitle': 'Install this App',
