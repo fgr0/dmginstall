@@ -57,15 +57,20 @@ def find_zip(directory='~/Downloads/'):
     return zips
 
 
-def find_install_app(directory='~/Downloads/', one=None, install=True, installto='/Applications/'):
+def find_install_app(directory='~/Downloads/',
+        one=None, install=True,
+        types=[], 
+        installto='/Applications/'):
     """ Finds an App in 'path' and installs it """
     directory = os.path.expanduser(directory)
     
+    apps = []
     if not one:
         # Find all Apps in location
-        apps = []
         for f in os.listdir(directory):
-            if f.endswith('.app') or f.endswith('.pkg'):
+            if ( (f.endswith('.app') and 'app' in types) or 
+                    (f.endswith('.pkg') and 'pkg' in types) or
+                    (f.endswith('.alfredworkflow') and 'alfredworkflow' in types) ):
                 apps.append(os.path.join(directory, f))
     elif os.path.exists(one):
         apps = [one]
@@ -75,8 +80,14 @@ def find_install_app(directory='~/Downloads/', one=None, install=True, installto
         for app in apps:
             if app.endswith('.pkg'):
                 install_pkg(app)
-            else:
+            elif app.endswith('.app'):
                 return_code = subprocess.call(['cp', '-pR', app, installto])
+                if return_code != 0:
+                    print(errno.errorcode[return_code])
+                    print(return_code)
+                    sys.exit(1)
+            elif app.endswith('.alfredworkflow'):
+                return_code = subprocess.call(['open', app])
                 if return_code != 0:
                     print(errno.errorcode[return_code])
                     print(return_code)
@@ -122,7 +133,8 @@ def extract_from_zip(zipf):
     apps = [x.split('.app/',1)[0]+'.app/' for x in zf.namelist() if x.count('.app/') == 1]
     apps+= [x for x in zf.namelist() if x.endswith('.pkg')]
     for app in list(set(apps)):
-        return_code = subprocess.call(['unzip', '%s'%zipf, '%s'%app, '-d', '%s'%d])
+        dnull = open('/dev/null','w')
+        return_code = subprocess.call(['unzip', '%s'%zipf, '%s'%app, '-d', '%s'%d], stdout=dnull)
         if return_code != 0:
             print(errno.errorcode[return_code])
             print(return_code)
@@ -134,19 +146,23 @@ def extract_from_zip(zipf):
 '''
 Functions for the use with Alfred
 '''
-def file_action(f,delete=False):
+def file_action(f,delete=False,types=['app','dmg','zip','pkg','alfredworkflow']):
     if f.endswith('.dmg'):
         # Install from dmgs
         vol = mount_dmg(f)
-        nr = find_install_app(vol)
+        nr = find_install_app(vol,types=types)
         mount_dmg(f,unmount=True)
     elif f.endswith('.zip'):
         # Install from zip
         d = extract_from_zip(f)
-        nr = find_install_app(d)
+        nr = find_install_app(d,types=types)
     elif f.endswith('.app') or f.endswith('.pkg'):
         # Move app
         nr = find_install_app(one=f)
+    elif f.endswith('.alfredworkflow'):
+        # Open alfredworkflows
+        nr =find_install_app(one=f)
+        # return
     else:
         nr = 0
 
@@ -166,11 +182,11 @@ def file_action(f,delete=False):
         except OSError:
             pass
 
-def script_action():
+def script_action(types=['app','dmg','zip','pkg','alfredworkflow']):
     """Creates Alfred-Feedback for the most-recent DMG/ZIP/APP"""
     matches = find_dmg()
     matches+= find_zip()
-    matches+= find_install_app(install=False)
+    matches+= find_install_app(install=False,types=types)
 
     # Sort by Creation time; Newest come first
     matches = sorted(matches, key=lambda f: os.path.getctime(f), reverse=True)
@@ -194,8 +210,8 @@ def script_action():
                     'fileType': 'True'}))
     else:
         fb.append(alp.Item(**{
-            'title': 'Install dmg',
-            'subtitle': 'No dmg found',
-            'valid': no}))
+            'title': 'App Install',
+            'subtitle': 'Nothing to install found',
+            'valid': 'no'}))
 
     alp.feedback(fb)
