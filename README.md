@@ -20,10 +20,26 @@ DMG Install searches through your ~/Downloads-folder for the newest `.dmg`- and
 
 ![](http://f.lc3dyr.de/dmginstall-2.png)
 
+## Supported Filetypes
+App Install will find and install the following Files from your Downloads-directory:
+
+* dmgs:
+    - Will mount and install all Apps and PKGs
+* zips:
+    - Will extract only Apps and PKGs and install them
+* Single Apps:
+    - Will copy them to /Application
+* Alfred Workflows
+    - Will open Alfred with the Workflow
+
 ## How to install
 Clone this repository to your Mac or simply download and open the [workflow][].
 
 ## Changelog
+* v0.4:
+    - Ability to install .pkg-Files
+    - Ability to find and install Alfred.Workflows
+    - Some bug fixes
 * v0.3:
     - Fix Symlinkproblem in Zipfiles
     - Add ability to delete Download after install (by pressing 
