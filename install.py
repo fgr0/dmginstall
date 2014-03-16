@@ -43,11 +43,11 @@ syslog = logging.handlers.SysLogHandler(address="/var/run/syslog")
 syslog.setLevel(logging.WARNING)
 syslog.setFormatter(formatter_sl)
 logger.addHandler(syslog)
-
-console = logging.StreamHandler()
-console.setLevel(logging.DEBUG)
-console.setFormatter(formatter_ch)
-logger.addHandler(console)
+#
+# console = logging.StreamHandler()
+# console.setLevel(logging.DEBUG)
+# console.setFormatter(formatter_ch)
+# logger.addHandler(console)
 
 
 def mount_dmg(dmg, unmount=False):
@@ -335,7 +335,7 @@ class Installable(object):
 
     def __len__(self):
         """returns number of installable objects"""
-        return 1 if len(self.installable) == 0 else len(self.installable)
+        return 1 if len(self.inzip) == 0 else len(self.inzip)
 
     def __repr__(self):
         """gives a representation of the instance"""
@@ -350,6 +350,7 @@ class Installable(object):
         return os.path.basename(self.path)
 
     # Static Methods
+    @staticmethod
     def get_installables(paths=PATHS, types=TYPES):
         """
         Finds installable objects

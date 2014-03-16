@@ -1,217 +1,95 @@
-# DMG Install Workflow for Alfred v2
-#
-# -----------------------------------------------------------------------------
-# "THE NERD-WARE LICENSE" (Revision 1): <dev.git@lc3dyr.de> wrote this file.
-# As long as you retain this notice you can do whatever you want with this
-# stuff. If we meet some day, and you think this stuff is worth it, you can buy
-# me a beer, mate or some food in return [Franz Greiling]
-# -----------------------------------------------------------------------------
-#   
-# by laerador (Franz Greiling)
+#!/usr/bin/env python
+"""
+Functions for the use with Alfred v2 on Mac OS X
+"""
+
+import os.path
+import string
 
 import alp
-from send2trash import send2trash
+from install import Installable, logger, NoApplicationException
 
-import sys
-import os.path
-import time
-
-import errno
-import subprocess
-
-import zipfile
-from tempfile import mkdtemp
-
-import shutil
+__author__ = "Franz Greiling"
+__email__ = "dev.installpy@lc3dyr.de"
+__copyright__ = "Copyright (c) 2014, Franz Greiling"
+__licence__ = "BSD 2-Clause License"
+__version__ = "v1.0"
 
 
-'''
-Basic Functions for Finding, Mounting and Installing
-'''
-def find_dmg(directory='~/Downloads/'):
-    """ Searches 'directory' for all files ending with *.dmg """
-    directory = os.path.expanduser(directory)
+def list_installables(query=None,
+                      paths=Installable.PATHS,
+                      types=Installable.TYPES):
+    """
+    searches for Installables in 'path' and generates Alfred-Feedback
 
-    # Find all DMGs
-    dmgs = []
-    for f in os.listdir(directory):
-        if f.endswith('.dmg'):
-            dmgs.append(os.path.join(directory, f))
+    Args:
+        query: Filters the resuls using a substring search
+        paths: List of paths that are searched for Installables
+        types: List of types that are used for Installables
 
-    return dmgs
+    Returns:
+        Returns Alfred Feedback XML containing one Item per Installable
+    """
 
-def find_zip(directory='~/Downloads/'):
-    """ Searches 'directory' for all zip-Files containing *.apps """
-    directory = os.path.expanduser(directory)
-    
-    # Find all zips
-    zips = []
-    for f in os.listdir(directory):
-        if f.endswith('.zip'):
-            zf = zipfile.ZipFile(os.path.join(directory, f), 'r')
-            if [x.split('.app/', 1)[0]+'.app/' for x in zf.namelist() if x.count('.app/') == 1]:
-                zips.append(os.path.join(directory, f))
-            elif [x for x in zf.namelist() if x.endswith('.pkg')]:
-                zips.append(os.path.join(directory, f))
-
-    return zips
-
-
-def find_install_app(directory='~/Downloads/',
-        one=None, install=True,
-        types=[], 
-        installto='/Applications/'):
-    """ Finds an App in 'path' and installs it """
-    directory = os.path.expanduser(directory)
-    
-    apps = []
-    if not one:
-        # Find all Apps in location
-        for f in os.listdir(directory):
-            if ( (f.endswith('.app') and 'app' in types) or 
-                    (f.endswith('.pkg') and 'pkg' in types) or
-                    (f.endswith('.alfredworkflow') and 'alfredworkflow' in types) ):
-                apps.append(os.path.join(directory, f))
-    elif os.path.exists(one):
-        apps = [one]
-
-    if install:
-        # Copy all apps to Install-Directory
-        for app in apps:
-            if app.endswith('.pkg'):
-                install_pkg(app)
-            elif app.endswith('.app'):
-                return_code = subprocess.call(['cp', '-pR', app, installto])
-                if return_code != 0:
-                    print(errno.errorcode[return_code])
-                    print(return_code)
-                    sys.exit(1)
-            elif app.endswith('.alfredworkflow'):
-                return_code = subprocess.call(['open', app])
-                if return_code != 0:
-                    print(errno.errorcode[return_code])
-                    print(return_code)
-                    sys.exit(1)
-
-        return len(apps)
-    else:
-        return apps
-
-def install_pkg(pkg):
-    return_code = subprocess.call(['open', '-W', pkg])
-    if return_code != 0:
-        print(errno.errorcode[return_code])
-        print(return_code)
-        sys.exit(1)
-    return 1
-
-
-def mount_dmg(dmg,unmount=False):
-    """ (Un)Mounts given DMG at /Volumes/NAME """
-    
-    # Generate Mountpoint
-    mount_point = os.path.join('/Volumes/', os.path.splitext(os.path.basename(dmg))[0])
-
-    # Mount dmg
-    dnull = open('/dev/null','w')
-    if unmount:
-        return_code = subprocess.call(['hdiutil', 'detach', mount_point], stdout=dnull)
-    else:
-        return_code = subprocess.call(['hdiutil', 'attach', '-mountpoint', mount_point, dmg], stdout=dnull)
-    if return_code is not 0:
-        print(errno.errorcode[return_code])
-        sys.exit(1)
-
-    return mount_point
-
-def extract_from_zip(zipf):
-    """ Extracts all Apps from zipfile to temp-directory, 
-    then calls find_install_app() """
-    
-    zf = zipfile.ZipFile(zipf,'r')
-    d = mkdtemp()
-    apps = [x.split('.app/',1)[0]+'.app/' for x in zf.namelist() if x.count('.app/') == 1]
-    apps+= [x for x in zf.namelist() if x.endswith('.pkg')]
-    for app in list(set(apps)):
-        dnull = open('/dev/null','w')
-        return_code = subprocess.call(['unzip', '%s'%zipf, '%s'%app, '-d', '%s'%d], stdout=dnull)
-        if return_code != 0:
-            print(errno.errorcode[return_code])
-            print(return_code)
-            sys.exit(1)
-
-    return d
-
-
-'''
-Functions for the use with Alfred
-'''
-def file_action(f,delete=False,types=['app','dmg','zip','pkg','alfredworkflow']):
-    if f.endswith('.dmg'):
-        # Install from dmgs
-        vol = mount_dmg(f)
-        nr = find_install_app(vol,types=types)
-        mount_dmg(f,unmount=True)
-    elif f.endswith('.zip'):
-        # Install from zip
-        d = extract_from_zip(f)
-        nr = find_install_app(d,types=types)
-    elif f.endswith('.app') or f.endswith('.pkg'):
-        # Move app
-        nr = find_install_app(one=f)
-    elif f.endswith('.alfredworkflow'):
-        # Open alfredworkflows
-        nr =find_install_app(one=f)
-        # return
-    else:
-        nr = 0
-
-    # Feedback for Notification
-    if nr is 0:
-        print('No Apps where installed')
-        return
-    elif nr is 1:
-        print('1 App was installed')
-    elif nr > 0:
-        print('%d Apps where installed'%nr)
-
-    # Remove if wanted
-    if delete:
-        try:
-            send2trash(f)
-        except OSError:
-            pass
-
-def script_action(types=['app','dmg','zip','pkg','alfredworkflow']):
-    """Creates Alfred-Feedback for the most-recent DMG/ZIP/APP"""
-    matches = find_dmg()
-    matches+= find_zip()
-    matches+= find_install_app(install=False,types=types)
+    apps = Installable.get_installables(paths, types)
 
     # Sort by Creation time; Newest come first
-    matches = sorted(matches, key=lambda f: os.path.getctime(f), reverse=True)
+    apps = sorted(apps,
+                  key=lambda f: os.path.getctime(f.path),
+                  reverse=True)
 
     fb = []
-    if matches:
-        for match in matches:
-            if match.endswith('.app') or match.endswith('.pkg'):
-                fb.append(alp.Item(**{
-                    'title': 'Install %s'%(os.path.splitext(os.path.basename(match))[0],),
-                    'subtitle': 'Install this App',
-                    'arg': match,
-                    'fileIcon': match,
-                    'fileType': 'True'}))
-            else:
-                fb.append(alp.Item(**{
-                    'title': 'Install %s'%(os.path.splitext(os.path.basename(match))[0],),
-                    'subtitle': 'Install all Apps from %s'%match,
-                    'arg': match,
-                    'fileIcon': match,
-                    'fileType': 'True'}))
-    else:
+    for a in apps:
+        if query and string.find(str(a).lower(), query.lower()) == -1:
+            continue
+
         fb.append(alp.Item(**{
-            'title': 'App Install',
-            'subtitle': 'Nothing to install found',
-            'valid': 'no'}))
+            'title': "Install %s" % os.path.splitext(str(a))[0],
+            'subtitle': "Install this %s" % a.ext.lstrip('.'),
+            'arg': a.path,
+            'filetype': a.path,
+        }))
 
     alp.feedback(fb)
+
+
+def install(query, prefix='/Applications/', overrite='True', remove=False):
+    """
+    Installs the Object at 'query'
+
+    Args:
+        query: REQUIRED: full path to the Installable
+        prefix: Defines where '.app's shall be installed.
+            Default is '/Applications/'
+        overrite: Defines if Applications at 'prefix' shall be overwritten
+            Default is 'True'
+        remove: If set to 'True' will remove the Installable after installation
+            Default is 'False'
+
+    Returns:
+        Returns a string containing information about success or failure
+    """
+
+    try:
+        app = Installable(query)
+        ret = app.install(
+            prefix=prefix,
+            remove=remove,
+            overrite=overrite
+        )
+        if ret != app.path:
+            print("Error installing Application")
+        else:
+            number = len(app)
+            if number == 1:
+                print("1 App was installed")
+            else:
+                print("%d Apps were installed" % number)
+    except NoApplicationException:
+        logger.error(
+            "Could not install %s: No valid application found" % query)
+        print("No valid application found.")
+        return
+    except OSError:
+        print("Error installing Application")
+        return
