@@ -77,7 +77,7 @@ list_installables(query="{query}", paths=PATHS)
 Please don't forget the comma at the end of the line and the single-quotes around the path.
 
 #### Installation Prefix
-To change the installation path (prefix) you need to modify **both** **Run Script** Actions. (One of the Actions is for normal (`Enter`), the other one for (`CMD+Enter`))
+To change the installation path (prefix) you need to modify **both** **Run Script** Actions (One of the Actions is for normal `Enter`, the other one for `CMD+Enter`).
 
 ```
 from alfred import install
