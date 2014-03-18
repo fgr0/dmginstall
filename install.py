@@ -148,7 +148,7 @@ class Installable(object):
         if ext == '.zip':
             _types = list(types)
             _types.remove('.zip')
-            _types.remove('.dmg')
+            # _types.remove('.dmg')
 
             zf = zipfile.ZipFile(path, 'r')
 
