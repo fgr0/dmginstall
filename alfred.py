@@ -16,14 +16,28 @@ __licence__ = "BSD 2-Clause License"
 __version__ = "v1.0"
 
 
+# Setup Settings
+SETTINGS = {
+    'paths': Installable.PATHS,
+    'types': Installable.TYPES,
+    'prefix': '/Applications/',
+}
+
+try:
+    SETTINGS = alp.jsonLoad('settings.json', SETTINGS)
+except Exception:
+    logger.error("Couldn't create/read settings.json. "
+                 "Might not be run from Alfred-Workflow")
+
+
 def list_installables(query=None,
-                      paths=Installable.PATHS,
-                      types=Installable.TYPES):
+                      paths=SETTINGS['paths'],
+                      types=SETTINGS['types']):
     """
     searches for Installables in 'path' and generates Alfred-Feedback
 
     Args:
-        query: Filters the resuls using a substring search
+        query: Filters the results using a substring search
         paths: List of paths that are searched for Installables
         types: List of types that are used for Installables
 
@@ -53,7 +67,7 @@ def list_installables(query=None,
     alp.feedback(fb)
 
 
-def install(query, prefix='/Applications/', overrite='True', remove=False):
+def install(query, prefix=SETTINGS['prefix'], overrite='True', remove=False):
     """
     Installs the Object at 'query'
 
